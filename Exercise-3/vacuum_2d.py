@@ -1,7 +1,15 @@
+# ======= #
+# IMPORTS #
+# ======= #
 import numpy as np
 import random
+
+# For final animation
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
+from matplotlib.animation import ArtistAnimation
 
 
 # ============ #
@@ -22,10 +30,11 @@ def rooms(x: int, y: int, strings: list[str]):
     #### - `strings`: `list[str]`
     The list of strings that will be used to randomly assign a value to every cell of the room.
     """
-    # Creating matrix with random values chosen between the three above:
+    # Create matrix of fixed size with random values chosen between the three above:
     matrix = np.random.choice(strings, size=(x, y))
 
-    # Loop through the matrix and replace "Clean" or "Dirty" elements that do not have two adjacent squares of the same type with a random value chosen between "Clean" and "Dirty"
+    # Loop through the matrix and replace "Clean" or "Dirty" elements that do not have two adjacent squares of the same type with a random value chosen between "Clean" and "Dirty";
+    # this is made to avoid most of infinite loops where the agent gets stuck in between obstacles:
     for i in range(x):
         for j in range(y):
             if matrix[i][j] == "Clean":
@@ -122,29 +131,67 @@ def rooms(x: int, y: int, strings: list[str]):
     return matrix
 
 
+# ================================ #
+# BIDIMENSIONAL VACUUM AGENT CLASS #
+# ================================ #
 class BidimensionalVacuumAgent:
+    """
+    ## `BidimensionalVacuumAgent` class
+
+    ===================================================
+
+    #### Description
+
+    This custom agent class creates a vacuum agent that tries to create an efficient movement
+    pattern to clean the whole room, avoiding obstacles. After 100 moves, the internal battery
+    of the vacuum runs out and the agent stops where it is.
+    """
+
+    # =========== #
+    # INIT METHOD #
+    # =========== #
     def __init__(self, env: np.ndarray):
+        """
+        ## `__init__` method
+
+        ===================================================
+
+        Initialization of some variables that the agent needs to know.
+        """
         self.performance = 0
         self.x = env.shape[0]
         self.y = env.shape[1]
         self.env = env
 
-    def vacuum_agent(self):
+    # ================== #
+    # VACUUM DROP METHOD #
+    # ================== #
+    def vacuum_drop(self):
+        """
+        ## `vacuum_drop` class
+
+        ===================================================
+
+        #### Description
+
+        This function chooses a valid position at random where the agent can spawn and places the
+        vacuum there.
+        """
         # Create a 2D array with the specified dimensions and strings:
         print(f"The room is: \n {self.env}")
-        # Choose a random starting position for the agent:
-        # Create a list of valid positions that are not obstacles
-        valid_positions = []
-        # Room current status:
 
+        valid_positions = []
+
+        # Create a list of valid positions that are not obstacles:
         for i in range(self.x):
             for j in range(self.y):
                 if self.env[i, j] != "Obstacle":
                     valid_positions.append((i, j))
 
+        # You'll get here only if you're really unlucky (or lucky?)
         if not valid_positions:
             print(
-                f"""No valid starting positions (without obstacles) available. You hit the one in {(1 / (1/3)^(x * y))} chance to get a {x} by {y} self.env composed
+                f"""No valid starting positions (without obstacles) available. You hit the one in {(1 / (1/3)^(self.x * self.y))} chance to get a {self.x} by {self.y} self.env composed
                 at random choosing among three values composed of only one of these three elements, I'd go play some scratch cards if I were you.
                 Now, let's re-run the script: """
             )
@@ -152,11 +199,30 @@ class BidimensionalVacuumAgent:
 
         # Choose a random starting position for the agent from valid positions:
         self.agent_pos = random.choice(valid_positions)
-        # Loop until all cells are either Clean or Obstacle:
 
-    def movement(self):
+    # =============== #
+    # MOVEMENT METHOD #
+    # =============== #
+    def movement(self, battery=100):
+        """
+        ## `movement` method
+
+        ===================================================
+
+        #### Description
+
+        This class dictates the movement pattern of the vacuum. It checks for nearby dirty cells
+        and goes there to clean them, avoids obstacles and avoids loops by limiting the battery
+        duration of the agent.
+
+        """
+        # Initializing battery duration (default 100 moves):
+        self.battery = battery
+        # Creating lists useful for the final animation:
         room_history = [self.env.copy()]
         agent_history = [self.agent_pos]
+
+        # Loop until all cells are either Clean or Obstacle:
         while True:
             # Get the value of the current cell:
             current_cell = self.env[self.agent_pos]
@@ -232,6 +298,7 @@ class BidimensionalVacuumAgent:
                     # Register current status of the environment for final animation:
                     room_history.append(self.env.copy())
                     agent_history.append(self.agent_pos)
+                    self.battery -= 1
                     print(f"Moved to cell {self.agent_pos}")
 
                     # Register performance:
@@ -280,6 +347,8 @@ class BidimensionalVacuumAgent:
                         print(f"Executing action {action}...")
                         print(f"Moved to cell {self.agent_pos}")
 
+                        self.battery -= 1
+
                         # Registering performance:
                         self.performance -= 0.6
 
@@ -287,66 +356,133 @@ class BidimensionalVacuumAgent:
             room_history.append(self.env.copy())
             agent_history.append(self.agent_pos)
 
-            # If all cells are Clean or Obstacle, break out of the loop:
-            if np.all(np.isin(self.env, ["Clean", "Obstacle"])):
+            # Checking battery duration. If it ran out, the agent stops:
+            if self.battery < 0:
+                print("Vacuum's battery ran out. ")
                 break
 
-        print("All cells are Clean or Obstacle")
+            # If all cells are Clean or Obstacle, break out of the loop; the agent completed its job:
+            if np.all(np.isin(self.env, ["Clean", "Obstacle"])):
+                print("All cells are Clean or Obstacle")
+                break
+
         return room_history, agent_history
 
 
+# ========================== #
+# VISUALIZE ANIMATION METHOD #
+# ========================== #
 def visualize_animation(room_history, agent_history):
+    """
+    ## `visualize_animation` method
+
+    ===================================================
+
+    #### Description
+
+    The method creates a very basic grid of the room dimension
+    and color-patterns the cells. It also keeps track of the agent
+    movement.
+
+    ===================================================
+
+    #### Parameters
+
+    #### - `room_history`: `list`
+    List of all the states of the room, in chronological order.
+
+    #### - `agent_history`: `list`
+    List of all the movements that the agent does, in chronological
+    order.
+    """
     fig, ax = plt.subplots()
     ims = []
 
-    # Create a mapping from string values to numerical values
-    value_map = {"Clean": 0, "Dirty": 1, "Obstacle": 2}
+    # Define the custom ColoredMap:
+    colors = [
+        (1.0, 1.0, 1.0),  # white - clean cells
+        (0.6, 0.4, 0.2),  # brown - dirty cells
+        (0.2, 0.2, 0.2),  # dark grey - obstacles
+        (0.0, 0.0, 0.0),  # Black - borders
+    ]
+    cmap = LinearSegmentedColormap.from_list("my_cmap", colors, N=256)
 
-    # Remove the initial empty frame, and start with the actual room state
+    # Define the animated agent:
+    vertices = [
+        (0, 0),
+        (0, 1),
+        (1, 1),
+        (1, 0),
+        (0, 0),
+    ]
+    codes = [
+        Path.MOVETO,
+        Path.LINETO,
+        Path.LINETO,
+        Path.LINETO,
+        Path.CLOSEPOLY,
+    ]
+    path = Path(vertices, codes)
+    marker = path
+
+    # Remove the initial empty frame, and start with the actual room state:
     room_history.pop(0)
     agent_history.pop(0)
 
-    # Initialize the dot object
-    (dot,) = ax.plot([], [], "ro", markersize=10)
-
-    def update(frame):
-        # Get the room and agent position for the current frame
-        room = room_history[frame]
-        agent_pos = agent_history[frame]
-
-        # Convert the room data to numerical representation using the mapping
+    # Create the final animation:
+    for room, agent_pos in zip(room_history, agent_history):
+        # Convert the room data to numerical representation using the mapping:
+        value_map = {"Clean": 0, "Dirty": 1, "Obstacle": 2, "CellBorder": 3}
         room_numeric = np.vectorize(value_map.get)(room)
 
-        # Update the image with the room state
+        # Create an image with the room state:
+        room = np.zeros((room_numeric.shape[0] + 2, room_numeric.shape[1] + 2))
+        room[1:-1, 1:-1] = room_numeric
+        room[0, :] = value_map["CellBorder"]
+        room[-1, :] = value_map["CellBorder"]
+        room[:, 0] = value_map["CellBorder"]
+        room[:, -1] = value_map["CellBorder"]
         im = ax.imshow(
-            room_numeric,
-            cmap="viridis",
+            room,
+            cmap=cmap,
             interpolation="none",
         )
 
-        # Update the position of the dot
-        dot.set_data(agent_pos[1], agent_pos[0])
+        # Highlight the agent's position with its marker:
+        dot = ax.plot([], [], marker=marker, markersize=20, color="red")[0]
+        dot.set_data((agent_pos[1] + 1, agent_pos[0] + 1))
 
-        return [im, dot]
+        ims.append([im, dot])
 
-    ani = FuncAnimation(
+    # Final animation output creator:
+    ani = ArtistAnimation(
         fig,
-        update,
-        frames=len(room_history),
-        interval=150,  # Adjust the interval for the animation speed
+        ims,
+        interval=150,
         blit=True,
     )
 
+    # Add a title and labels to the subplot:
+    ax.set_title(
+        f"Model Based Vacuum Cleaner Agent working in a {room_numeric.shape[0]}x{room_numeric.shape[0]} room with obstacles."
+    )
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+
+    # Animation output:
     plt.show()
 
 
+# =========== #
+# MAIN METHOD #
+# =========== #
 if __name__ == "__main__":
     strings = ["Clean", "Dirty", "Obstacle"]
-    random_matrix = rooms(4, 4, strings)
+    random_matrix = rooms(6, 6, strings)
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
-    vacuum.vacuum_agent()
-    room_history, agent_history = vacuum.movement()
+    vacuum.vacuum_drop()
+    room_history, agent_history = vacuum.movement(450)
     print(
         f"The vacuum has finished its job. Its performance score is {round(vacuum.performance, 3)}."
     )
