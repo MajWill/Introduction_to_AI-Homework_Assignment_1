@@ -2,8 +2,8 @@
 
 ## Exercise 1 and Exercise 2
 
-The PDF file named [AI.pdf](AI.pdf) contain the text with our findings about exercise 1 and the text about our presentation for exercise 2. \
-The PDF file named [BiasPresentation.pdf](BiasPresentation.pdf) is a PDF presentation with slides for the exercise 2.
+- [AI.pdf](AI.pdf) contain the text with our findings about exercise 1 and the text about our presentation for exercise 2. \
+- [BiasPresentation.pdf](BiasPresentation.pdf) is a PDF presentation with slides for the exercise 2.
 
 ## Exercise 3
 
