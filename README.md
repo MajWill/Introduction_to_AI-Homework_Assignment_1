@@ -6,7 +6,8 @@
 - [BiasPresentation.pdf](BiasPresentation.pdf) is a PDF presentation with slides for the exercise 2.
 
 ## Exercise 3
+The folder [Exercise-3](Exercise-3) contains all the necessary files for the implementation of the vacuum cleaner exercise.
 
-Programmed the first part using the existing Agent class but with a Simple Reflex. To calculate the total score, executed 3 nested loops for every possible combination of starting conditions and clean/dirty.
+We programmed the first part using the existing Agent class but with a Simple Reflex. To calculate the total score, executed 3 nested loops for every possible combination of starting conditions and clean/dirty.
 
-Programmed the second request by rewriting the Agent model with functions implemented by us.
+We Programmed the second request by rewriting the Agent model with functions implemented by us in the [vacuum_2d.py](Exercise-3/vacuum_2d.py) file.
