@@ -2,7 +2,7 @@
 
 ## Exercise 1 and Exercise 2
 
-Uploaded the PDF file named [AI.pdf](AI.pdf) containing the text with our findings about exercise 1 and the text about our presentation for exercise 2. Uploaded the PDF file named BiasPresentation.pdf with the slides for the presentation about exercise 2.
+The PDF file named [AI.pdf](AI.pdf) contain the text with our findings about exercise 1 and the text about our presentation for exercise 2. Uploaded the PDF file named [BiasPresentation.pdf](BiasPresentation.pdf) with the slides for the presentation about exercise 2.
 
 ## Exercise 3
 
