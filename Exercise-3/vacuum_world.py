@@ -41,68 +41,65 @@ class TrivialVacuumEnvironment(Environment):
                 agent.performance += 10
             self.status[agent.location] = "Clean"
 
-# Initialize the two-state environment
-trivial_vacuum_env = TrivialVacuumEnvironment()
+if __name__ == '__main__':
+    # Initialize the two-state environment
+    trivial_vacuum_env = TrivialVacuumEnvironment()
 
-"""We change the simpleReflexAgentProgram so that it doesn't make use of the Rule class"""
-def SimpleReflexAgentProgram():
-    """This agent takes action based solely on the percept. [Figure 2.10]"""
+    """We change the simpleReflexAgentProgram so that it doesn't make use of the Rule class"""
+    def SimpleReflexAgentProgram():
+        """This agent takes action based solely on the percept. [Figure 2.10]"""
+        
+        def program(percept):
+            loc, status = percept
+            return ('Suck' if status == 'Dirty' 
+                    else'Right' if loc == loc_A 
+                                else'Left')
+        return program
+
+    # Create a simple reflex agent the two-state environment
+    program = SimpleReflexAgentProgram()
+    simple_reflex_agent = Agent(program)
+
+    # Dropping the agent in the environment:
+    trivial_vacuum_env.add_thing(simple_reflex_agent)
     
-    def program(percept):
-        loc, status = percept
-        return ('Suck' if status == 'Dirty' 
-                else'Right' if loc == loc_A 
-                            else'Left')
-    return program
+    # Initialize the score variable:
+    total_score = 0.0
 
-# Create a simple reflex agent the two-state environment
-program = SimpleReflexAgentProgram()
-simple_reflex_agent = Agent(program)
+    # Simulating all states of the environment: 
+    for p in range(2):
+        if p == 0:
+            simple_reflex_agent.location = loc_A
+        elif p == 1:
+            simple_reflex_agent.location = loc_B
+        for i in range(2):
+            for j in range(2):
+                if p == 0:
+                    simple_reflex_agent.location = loc_A
+                elif p == 1:
+                    simple_reflex_agent.location = loc_B
+                if j == 0:
+                    trivial_vacuum_env.status[loc_B] = "Clean"
+                else:
+                    trivial_vacuum_env.status[loc_B] = "Dirty"
+                if i == 0:
+                    trivial_vacuum_env.status[loc_A] = "Clean"
+                else:
+                    trivial_vacuum_env.status[loc_A] = "Dirty"
+                # Location of the agent 
+                print(f"SimpleReflexVacuumAgent is located in Room {simple_reflex_agent.location}.\n")
 
-trivial_vacuum_env.add_thing(simple_reflex_agent)
-total_score = 0.0
-for p in range(2):
-    if p == 0:
-        simple_reflex_agent.location = loc_A
-    elif p == 1:
-        simple_reflex_agent.location = loc_B
-    for i in range(2):
-        for j in range(2):
-            if p == 0:
-                simple_reflex_agent.location = loc_A
-            else:
-                simple_reflex_agent.location = loc_B
-    
-            if j == 0:
-                trivial_vacuum_env.status[loc_B] = "Clean"
-            else:
-                trivial_vacuum_env.status[loc_B] = "Dirty"
-            if i == 0:
-                trivial_vacuum_env.status[loc_A] = "Clean"
-            else:
-                trivial_vacuum_env.status[loc_A] = "Dirty"
-            # Location of the agent 
-            print(f"SimpleReflexVacuumAgent is located at {simple_reflex_agent.location}.\n")
+                # Check the current state of the environment
+                print(f"State of the Environment: {trivial_vacuum_env.status}.\n")
+                
+                # Run the environment
+                trivial_vacuum_env.step()
 
-            # Check the current state of the environment
-            print(f"State of the Environment: {trivial_vacuum_env.status}.\n")
-            
+                # Performance score after one step
+                print(f"The score of the agent is {simple_reflex_agent.performance}.\n")
+                total_score = total_score + simple_reflex_agent.performance
+                simple_reflex_agent.performance = 0
 
-            #print(f"Siamo nel caso:{p, i, j}")
+    # Average score
 
-            # Run the environment
-            trivial_vacuum_env.step()
-
-            # Performance score after one step
-            print(f"The score of the agent is {simple_reflex_agent.performance}.\n")
-            total_score = total_score + simple_reflex_agent.performance
-            simple_reflex_agent.performance = 0
-
-            # New location of the agent after one step
-            #print(f"SimpleReflexVacuumAgent is located at {simple_reflex_agent.location}.\n")
-
-
-            
-# Average score
-
-print(f" The average score of the agent is: {total_score/8}.")
+    print(f" The average score of the agent is: {total_score/8}.")

@@ -8,28 +8,39 @@ import random
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.path import Path
-from matplotlib.patches import PathPatch
 from matplotlib.animation import ArtistAnimation
 
 
 # ============ #
 # ROOMS METHOD #
 # ============ #
-def rooms(x: int, y: int, strings: list[str]):
+def rooms(x: int, y: int):
     """
     ## `rooms` method
+
     ==================================
+
     #### Description
+
     Takes as input the two dimensions of the room and creates one accordingly with random status for every cell, chosen between "Clean", "Dirty" and "Obstacle". Every cell touching other two squares that are either Clean or Dirty at directions North, West, South, or East.
+
     ==================================
+
     #### Parameters
+
     #### - `x`: `int`
+
     Room's dimension on the `x` axis.
+
     #### - `y`: `int`
+
     Room's dimension on the `y` axis.
+
     #### - `strings`: `list[str]`
+
     The list of strings that will be used to randomly assign a value to every cell of the room.
     """
+    strings = ["Clean", "Dirty", "Obstacle"]
     # Create matrix of fixed size with random values chosen between the three above:
     matrix = np.random.choice(strings, size=(x, y))
 
@@ -461,7 +472,6 @@ def visualize_animation(room_history, agent_history):
         interval=150,
         blit=True,
     )
-
     # Add a title and labels to the subplot:
     ax.set_title(
         f"Model Based Vacuum Cleaner Agent working in a {room_numeric.shape[0]}x{room_numeric.shape[0]} room with obstacles."
@@ -478,11 +488,12 @@ def visualize_animation(room_history, agent_history):
 # =========== #
 if __name__ == "__main__":
     strings = ["Clean", "Dirty", "Obstacle"]
-    random_matrix = rooms(6, 6, strings)
+    random_matrix = rooms(6, 6)
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
     vacuum.vacuum_drop()
     room_history, agent_history = vacuum.movement(450)
+
     print(
         f"The vacuum has finished its job. Its performance score is {round(vacuum.performance, 3)}."
     )
