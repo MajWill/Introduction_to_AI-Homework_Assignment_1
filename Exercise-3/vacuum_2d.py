@@ -40,9 +40,17 @@ def rooms(x: int, y: int):
 
     The list of strings that will be used to randomly assign a value to every cell of the room.
     """
-    strings = ["Clean", "Clean", "Dirty", "Dirty", "Obstacle"]
+    strings = ["Clean", "Clean", "Clean", "Dirty", "Dirty", "Obstacle"]
     # Create matrix of fixed size with random values chosen between the three above:
     matrix = np.random.choice(strings, size=(x, y))
+
+    # Creating two charging stations:
+    # Charge 1:
+    a = random.randint(0, x - 1)
+    b = random.randint(0, y - 1)
+    # Charge 2:
+    c = random.randint(0, x - 1)
+    d = random.randint(0, y - 1)
 
     # Loop through the matrix and replace "Clean" or "Dirty" elements that do not have two adjacent squares of the same type with a random value chosen between "Clean" and "Dirty";
     # this is made to avoid most of infinite loops where the agent gets stuck in between obstacles:
@@ -139,6 +147,9 @@ def rooms(x: int, y: int):
                 if not adjacent_one or not adjacent_two:
                     matrix[i][j] = np.random.choice(["Clean", "Dirty"])
 
+    # In the end, place the charging station:
+    matrix[a][b] = "Charger"
+    matrix[c][d] = "Charger"
     return matrix
 
 
@@ -196,7 +207,7 @@ class BidimensionalVacuumAgent:
         # Create a list of valid positions that are not obstacles:
         for i in range(self.x):
             for j in range(self.y):
-                if self.env[i, j] != "Obstacle":
+                if self.env[i, j] != "Obstacle" and self.env[i, j] != "Charger":
                     valid_positions.append((i, j))
 
         # You'll get here only if you're really unlucky (or lucky?)
@@ -232,7 +243,7 @@ class BidimensionalVacuumAgent:
         # Creating lists useful for the final animation:
         room_history = [self.env.copy()]
         agent_history = [self.agent_pos]
-
+        default_battery = battery
         # Loop until all cells are either Clean or Obstacle:
         while True:
             # Get the value of the current cell:
@@ -252,10 +263,16 @@ class BidimensionalVacuumAgent:
                 print(f"Cleaned cell {self.agent_pos}")
 
                 # Register performance value:
-                self.performance += 12.5
+                self.performance += 25
 
             # If the cell is Clean, check adjacent cells for Dirty cells:
-            elif current_cell == "Clean":
+            # If the vacuum reaches a Charging station, the battery gets recharged:
+            elif current_cell == "Clean" or current_cell == "Charger":
+                if self.battery < default_battery / 2:
+                    self.battery = default_battery
+                    print("The battery has been recharged. ")
+                    # The recharging station gets used:
+                    current_cell = "Clean"
                 possible_moves = []
                 dirty_adjacent = False
 
@@ -361,7 +378,7 @@ class BidimensionalVacuumAgent:
                         self.battery -= 1
 
                         # Registering performance:
-                        self.performance -= 0.6
+                        self.performance -= 0.5
 
             # Registering positions:
             room_history.append(self.env.copy())
@@ -373,8 +390,8 @@ class BidimensionalVacuumAgent:
                 break
 
             # If all cells are Clean or Obstacle, break out of the loop; the agent completed its job:
-            if np.all(np.isin(self.env, ["Clean", "Obstacle"])):
-                print("All cells are Clean or Obstacle")
+            if np.all(np.isin(self.env, ["Clean", "Obstacle", "Charger"])):
+                print("All cells are Clean, Charging stations or Obstacles. ")
                 break
 
         return room_history, agent_history
@@ -411,10 +428,11 @@ def visualize_animation(room_history, agent_history):
 
     # Define the custom ColoredMap:
     colors = [
-        (1.0, 1.0, 1.0),  # white - clean cells
-        (0.6, 0.4, 0.2),  # brown - dirty cells
-        (0.2, 0.2, 0.2),  # dark grey - obstacles
-        (0.0, 0.0, 0.0),  # Black - borders
+        (1.0, 1.0, 1.0),  # White - Clean cells
+        (0.6, 0.4, 0.2),  # Brown - Dirty cells
+        (0.2, 0.2, 0.2),  # Dark Grey - Obstacles
+        (0.7, 0.9, 0.7),  # Light Green - Charging stations
+        (0.0, 0.0, 0.0),  # Black - Borders
     ]
     cmap = LinearSegmentedColormap.from_list("my_cmap", colors, N=256)
 
@@ -443,7 +461,13 @@ def visualize_animation(room_history, agent_history):
     # Create the final animation:
     for room, agent_pos in zip(room_history, agent_history):
         # Convert the room data to numerical representation using the mapping:
-        value_map = {"Clean": 0, "Dirty": 1, "Obstacle": 2, "CellBorder": 3}
+        value_map = {
+            "Clean": 0,
+            "Dirty": 1,
+            "Obstacle": 2,
+            "Charger": 3,
+            "CellBorder": 4,
+        }
         room_numeric = np.vectorize(value_map.get)(room)
 
         # Create an image with the room state:
@@ -474,7 +498,7 @@ def visualize_animation(room_history, agent_history):
     )
     # Add a title and labels to the subplot:
     ax.set_title(
-        f"Model Based Vacuum Cleaner Agent working in a {room_numeric.shape[0]}x{room_numeric.shape[0]} room with obstacles."
+        f"Model Based Vacuum Cleaner Agent working in a {room_numeric.shape[0]}x{room_numeric.shape[1]} room with obstacles."
     )
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
@@ -487,7 +511,7 @@ def visualize_animation(room_history, agent_history):
 # MAIN METHOD #
 # =========== #
 if __name__ == "__main__":
-    random_matrix = rooms(10, 10)
+    random_matrix = rooms(10, 15)
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
     vacuum.vacuum_drop()
