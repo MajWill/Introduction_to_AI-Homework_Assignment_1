@@ -274,6 +274,10 @@ class BidimensionalVacuumAgent:
                     print("The battery has been recharged. ")
                     # The recharging station gets used:
                     current_cell = "Clean"
+                elif current_cell == "Charger":
+                    print(
+                        f"The vacuum passed on a Charging station, but does not need to recharge: its battery still has {self.battery} charges of {default_battery}. "
+                    )
                 possible_moves = []
                 dirty_adjacent = False
 
@@ -557,7 +561,7 @@ def visualize_animation(room_history, agent_history):
 # MAIN METHOD #
 # =========== #
 if __name__ == "__main__":
-    random_matrix = rooms(20, 5)
+    random_matrix = rooms(10, 10)
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
     vacuum.vacuum_drop()
