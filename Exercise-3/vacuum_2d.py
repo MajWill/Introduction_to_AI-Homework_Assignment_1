@@ -184,6 +184,7 @@ class BidimensionalVacuumAgent:
         self.x = env.shape[0]
         self.y = env.shape[1]
         self.env = env
+        self.previous_action = ""
 
     # ================== #
     # VACUUM DROP METHOD #
@@ -364,17 +365,62 @@ class BidimensionalVacuumAgent:
                         action = possible_moves[
                             random.randint(0, len(possible_moves) - 1)
                         ]
+
                         if action == "North":
-                            self.agent_pos = (self.agent_pos[0] - 1, self.agent_pos[1])
+                            if self.previous_action == "South":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0] - 1,
+                                    self.agent_pos[1],
+                                )
                         elif action == "South":
-                            self.agent_pos = (self.agent_pos[0] + 1, self.agent_pos[1])
+                            if self.previous_action == "North":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0] + 1,
+                                    self.agent_pos[1],
+                                )
                         elif action == "West":
-                            self.agent_pos = (self.agent_pos[0], self.agent_pos[1] - 1)
+                            if self.previous_action == "East":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0],
+                                    self.agent_pos[1] - 1,
+                                )
                         elif action == "East":
-                            self.agent_pos = (self.agent_pos[0], self.agent_pos[1] + 1)
+                            if self.previous_action == "West":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0],
+                                    self.agent_pos[1] + 1,
+                                )
                         print(f"Executing action {action}...")
                         print(f"Moved to cell {self.agent_pos}")
-
+                        self.previous_action = action
                         self.battery -= 1
 
                         # Registering performance:
@@ -511,11 +557,11 @@ def visualize_animation(room_history, agent_history):
 # MAIN METHOD #
 # =========== #
 if __name__ == "__main__":
-    random_matrix = rooms(10, 15)
+    random_matrix = rooms(20, 5)
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
     vacuum.vacuum_drop()
-    room_history, agent_history = vacuum.movement(400)
+    room_history, agent_history = vacuum.movement(150)
 
     print(
         f"The vacuum has finished its job. Its performance score is {round(vacuum.performance, 3)}."
