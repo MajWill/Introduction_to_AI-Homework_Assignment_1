@@ -40,7 +40,7 @@ def rooms(x: int, y: int):
 
     The list of strings that will be used to randomly assign a value to every cell of the room.
     """
-    strings = ["Clean", "Dirty", "Obstacle"]
+    strings = ["Clean", "Clean", "Dirty", "Dirty", "Obstacle"]
     # Create matrix of fixed size with random values chosen between the three above:
     matrix = np.random.choice(strings, size=(x, y))
 
@@ -487,12 +487,11 @@ def visualize_animation(room_history, agent_history):
 # MAIN METHOD #
 # =========== #
 if __name__ == "__main__":
-    strings = ["Clean", "Dirty", "Obstacle"]
-    random_matrix = rooms(6, 6)
+    random_matrix = rooms(10, 10)
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
     vacuum.vacuum_drop()
-    room_history, agent_history = vacuum.movement(450)
+    room_history, agent_history = vacuum.movement(400)
 
     print(
         f"The vacuum has finished its job. Its performance score is {round(vacuum.performance, 3)}."
