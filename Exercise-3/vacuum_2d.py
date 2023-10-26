@@ -274,6 +274,7 @@ class BidimensionalVacuumAgent:
             elif current_cell == "Clean":
                 possible_moves = []
                 dirty_adjacent = False
+
                 # Checking if there are dirty cells nearby:
                 if (
                     self.agent_pos[0] > 0
@@ -318,8 +319,8 @@ class BidimensionalVacuumAgent:
                     dirty_pos = tuple(
                         possible_moves[random.randint(0, len(possible_moves) - 1)]
                     )
-                    self.env[self.agent_pos] = "Clean"
                     self.agent_pos = dirty_pos
+                    self.env[self.agent_pos] = "Clean"
 
                     # Register current status of the environment for final animation:
                     room_history.append(self.env.copy())
@@ -720,7 +721,7 @@ if __name__ == "__main__":
 
     vacuum = BidimensionalVacuumAgent(random_matrix)
     vacuum.vacuum_drop()
-    room_history, agent_history = vacuum.movement(150)
+    room_history, agent_history = vacuum.movement(450)
 
     print(
         f"The vacuum has finished its job. Its performance score is {round(vacuum.performance, 3)}."
