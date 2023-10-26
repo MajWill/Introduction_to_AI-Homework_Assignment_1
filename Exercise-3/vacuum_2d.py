@@ -321,7 +321,7 @@ class BidimensionalVacuumAgent:
                     )
                     self.agent_pos = dirty_pos
                     self.env[self.agent_pos] = "Clean"
-
+                    self.performance += 25
                     # Register current status of the environment for final animation:
                     room_history.append(self.env.copy())
                     agent_history.append(self.agent_pos)
