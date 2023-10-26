@@ -216,7 +216,7 @@ class BidimensionalVacuumAgent:
             print(
                 f"""No valid starting positions (without obstacles) available. You hit the one in {(1 / (1/3)^(self.x * self.y))} chance to get a {self.x} by {self.y} self.env composed
                 at random choosing among three values composed of only one of these three elements, I'd go play some scratch cards if I were you.
-                Now, let's re-run the script: """
+                """
             )
             return []
 
@@ -241,10 +241,14 @@ class BidimensionalVacuumAgent:
         """
         # Initializing battery duration (default 100 moves):
         self.battery = battery
+
         # Creating lists useful for the final animation:
         room_history = [self.env.copy()]
         agent_history = [self.agent_pos]
+
+        # Checking the battery status:
         default_battery = battery
+
         # Loop until all cells are either Clean or Obstacle:
         while True:
             # Get the value of the current cell:
@@ -267,20 +271,171 @@ class BidimensionalVacuumAgent:
                 self.performance += 25
 
             # If the cell is Clean, check adjacent cells for Dirty cells:
+            elif current_cell == "Clean":
+                possible_moves = []
+                dirty_adjacent = False
+                # Checking if there are dirty cells nearby:
+                if (
+                    self.agent_pos[0] > 0
+                    and self.env[self.agent_pos[0] - 1, self.agent_pos[1]] == "Dirty"
+                ):
+                    dirty_adjacent = True
+                    print(
+                        f"There's a Dirty square near here! It's located in {[self.agent_pos[0] - 1, self.agent_pos[1]]}! "
+                    )
+                    possible_moves.append([self.agent_pos[0] - 1, self.agent_pos[1]])
+                if (
+                    self.agent_pos[0] < self.x - 1
+                    and self.env[self.agent_pos[0] + 1, self.agent_pos[1]] == "Dirty"
+                ):
+                    dirty_adjacent = True
+                    print(
+                        f"There's a Dirty square near here! It's located in {[self.agent_pos[0] + 1, self.agent_pos[1]]}! "
+                    )
+                    possible_moves.append([self.agent_pos[0] + 1, self.agent_pos[1]])
+
+                if (
+                    self.agent_pos[1] > 0
+                    and self.env[self.agent_pos[0], self.agent_pos[1] - 1] == "Dirty"
+                ):
+                    dirty_adjacent = True
+                    print(
+                        f"There's a Dirty square near here! It's located in {[self.agent_pos[0], self.agent_pos[1] - 1]}! "
+                    )
+                    possible_moves.append([self.agent_pos[0], self.agent_pos[1] - 1])
+                if (
+                    self.agent_pos[1] < self.y - 1
+                    and self.env[self.agent_pos[0], self.agent_pos[1] + 1] == "Dirty"
+                ):
+                    dirty_adjacent = True
+                    print(
+                        f"There's a Dirty square near here! It's located in {[self.agent_pos[0], self.agent_pos[1] + 1]}! "
+                    )
+                    possible_moves.append([self.agent_pos[0], self.agent_pos[1] + 1])
+
+                # If there is a Dirty cell adjacent, move to it. If there's more than one, choose one at random:
+                if dirty_adjacent:
+                    dirty_pos = tuple(
+                        possible_moves[random.randint(0, len(possible_moves) - 1)]
+                    )
+                    self.env[self.agent_pos] = "Clean"
+                    self.agent_pos = dirty_pos
+
+                    # Register current status of the environment for final animation:
+                    room_history.append(self.env.copy())
+                    agent_history.append(self.agent_pos)
+                    self.battery -= 1
+                    print(f"Moved to cell {self.agent_pos}")
+
+                    # Register performance:
+                    self.performance -= 0.5
+
+                else:
+                    # Find a random cell that is not an Obstacle and move to it:
+                    possible_moves = []
+                    if (
+                        self.agent_pos[0] > 0
+                        and self.env[self.agent_pos[0] - 1, self.agent_pos[1]]
+                        != "Obstacle"
+                    ):
+                        possible_moves.append("North")
+                    if (
+                        self.agent_pos[0] < self.x - 1
+                        and self.env[self.agent_pos[0] + 1, self.agent_pos[1]]
+                        != "Obstacle"
+                    ):
+                        possible_moves.append("South")
+                    if (
+                        self.agent_pos[1] > 0
+                        and self.env[self.agent_pos[0], self.agent_pos[1] - 1]
+                        != "Obstacle"
+                    ):
+                        possible_moves.append("West")
+                    if (
+                        self.agent_pos[1] < self.y - 1
+                        and self.env[self.agent_pos[0], self.agent_pos[1] + 1]
+                        != "Obstacle"
+                    ):
+                        possible_moves.append("East")
+
+                    if len(possible_moves) > 0:
+                        action = possible_moves[
+                            random.randint(0, len(possible_moves) - 1)
+                        ]
+
+                        if action == "North":
+                            if self.previous_action == "South":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0] - 1,
+                                    self.agent_pos[1],
+                                )
+                        elif action == "South":
+                            if self.previous_action == "North":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0] + 1,
+                                    self.agent_pos[1],
+                                )
+                        elif action == "West":
+                            if self.previous_action == "East":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0],
+                                    self.agent_pos[1] - 1,
+                                )
+                        elif action == "East":
+                            if self.previous_action == "West":
+                                while True:
+                                    action = possible_moves[
+                                        random.randint(0, len(possible_moves) - 1)
+                                    ]
+                                    if action != self.previous_action:
+                                        break
+                            else:
+                                self.agent_pos = (
+                                    self.agent_pos[0],
+                                    self.agent_pos[1] + 1,
+                                )
+                        print(f"Executing action {action}...")
+                        print(f"Moved to cell {self.agent_pos}")
+                        self.previous_action = action
+                        self.battery -= 1
+
+                        # Registering performance:
+                        self.performance -= 0.5
+
             # If the vacuum reaches a Charging station, the battery gets recharged:
-            elif current_cell == "Clean" or current_cell == "Charger":
+            elif current_cell == "Charger":
                 if self.battery < default_battery / 2:
                     self.battery = default_battery
                     print("The battery has been recharged. ")
                     # The recharging station gets used:
                     current_cell = "Clean"
-                elif current_cell == "Charger":
+                else:
                     print(
                         f"The vacuum passed on a Charging station, but does not need to recharge: its battery still has {self.battery} charges of {default_battery}. "
                     )
                 possible_moves = []
                 dirty_adjacent = False
-
                 # Checking if there are dirty cells nearby:
                 if (
                     self.agent_pos[0] > 0
