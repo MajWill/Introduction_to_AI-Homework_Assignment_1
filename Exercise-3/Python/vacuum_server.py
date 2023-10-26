@@ -27,19 +27,20 @@ def start_server():
     try:
         # Initialize your vacuum simulation
         random_matrix = rooms(10, 10)
-        vacuum = BidimensionalVacuumAgent(random_matrix)
-        vacuum.vacuum_drop()
-        room_history, agent_history = vacuum.movement(450)
+        room_list = random_matrix.tolist()
+        # vacuum = BidimensionalVacuumAgent(random_matrix)
+        # vacuum.vacuum_drop()
+        # room_history, agent_history = vacuum.movement(450)
 
         # For demonstration, we're sending the last state
         data_to_send = {
-            "room_state": room_history[-1].tolist(),
-            "vacuum_pos": agent_history[-1],
+            "room_state": room_list  # room_history[-1].tolist(),
+            # "vacuum_pos": agent_history[-1],
         }
 
         # Serialize data to JSON format
         json_data = json.dumps(data_to_send)
-
+        print("Sending data:", data_to_send)
         # Send data to Unity
         client_socket.sendall(json_data.encode("utf-8"))
 
